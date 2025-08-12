@@ -31,6 +31,7 @@
 
 import logging
 import traceback
+from datetime import datetime, timedelta
 
 import collections
 
@@ -203,6 +204,13 @@ class ContestListHandler(BaseHandler):
         contest_list = dict()
         for contest in self.sql_session.query(Contest).all():
             contest: Contest
-            contest_list[contest.name] = contest
+            
+            # We hide contests that ended more than a week ago, or start more than a week from now
+            today = datetime.now()
+            seven_days_ago = today - timedelta(days=7)
+            seven_days_ahead = today + timedelta(days=7)
+            if contest.start < seven_days_ahead and contest.stop > seven_days_ago:
+                contest_list[contest.name] = contest
+
         self.render("contest_list.html", contest_list=contest_list,
                     **self.r_params)
