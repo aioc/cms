@@ -33,6 +33,7 @@ LOADERS: dict[str, type[BaseLoader]] = dict(
         PolygonUserLoader,
         PolygonContestLoader,
         TpsTaskLoader,
+        CtfTaskLoader
     ]
 )
 
