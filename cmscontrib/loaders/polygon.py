@@ -22,6 +22,7 @@
 
 import logging
 import os
+import json
 import shutil
 import subprocess
 import xml.etree.ElementTree as ET
@@ -34,7 +35,8 @@ from cms import config
 from cms.db import Contest, User, Task, Statement, Dataset, Manager, Testcase
 from cmscommon.crypto import build_password
 from cmscontrib import touch
-from .base_loader import ContestLoader, TaskLoader, UserLoader, LANGUAGE_MAP
+from .base_loader import ContestLoader, TaskLoader, UserLoader
+from cmscommon.constants import SCORE_MODE_MAX_SUBTASK
 
 
 logger = logging.getLogger(__name__)
@@ -42,6 +44,69 @@ logger = logging.getLogger(__name__)
 
 def make_timedelta(t):
     return timedelta(seconds=t)
+
+LANGUAGE_MAP = {
+    'afrikaans': 'af',
+    'arabic': 'ar',
+    'armenian': 'hy',
+    'azerbaijani': 'az',
+    'belarusian': 'be',
+    'bengali': 'bn',
+    'bosnian': 'bs',
+    'bulgarian': 'bg',
+    'catalan': 'ca',
+    'chinese': 'zh',
+    'croatian': 'hr',
+    'czech': 'cs',
+    'danish': 'da',
+    'dutch': 'nl',
+    'english': 'en',
+    'estonian': 'et',
+    'filipino': 'fil',
+    'finnish': 'fi',
+    'french': 'fr',
+    'georgian': 'ka',
+    'german': 'de',
+    'greek': 'el',
+    'hebrew': 'he',
+    'hindi': 'hi',
+    'hungarian': 'hu',
+    'icelandic': 'is',
+    'indonesian': 'id',
+    'irish': 'ga',
+    'italian': 'it',
+    'japanese': 'ja',
+    'kazakh': 'kk',
+    'korean': 'ko',
+    'kyrgyz': 'ky',
+    'latvian': 'lv',
+    'lithuanian': 'lt',
+    'macedonian': 'mk',
+    'malay': 'ms',
+    'mongolian': 'mn',
+    'norwegian': 'no',
+    'persian': 'fa',
+    'polish': 'pl',
+    'portuguese': 'pt',
+    'romanian': 'ro',
+    'russian': 'ru',
+    'serbian': 'sr',
+    'sinhala': 'si',
+    'slovak': 'sk',
+    'slovene': 'sl',
+    'spanish': 'es',
+    'swedish': 'sv',
+    'tajik': 'tg',
+    'tamil': 'ta',
+    'thai': 'th',
+    'turkish': 'tr',
+    'turkmen': 'tk',
+    'ukrainian': 'uk',
+    'urdu': 'ur',
+    'uzbek': 'uz',
+    'vietnamese': 'vi',
+    'other': 'other',
+}
 
 
 class PolygonTaskLoader(TaskLoader):
@@ -143,6 +208,10 @@ class PolygonTaskLoader(TaskLoader):
         # args['token_gen_number'] = 1
         # args['token_gen_interval'] = make_timedelta(1800)
         # args['token_gen_max'] = 2
+        args['score_mode'] = SCORE_MODE_MAX_SUBTASK
+        args['feedback_level'] = 'restricted'
+        args['min_submission_interval'] = make_timedelta(60)
+
 
         task_cms_conf_path = os.path.join(self.path, 'files', 'cms_conf.py')
         task_cms_conf = None
@@ -214,16 +283,13 @@ class PolygonTaskLoader(TaskLoader):
             args["task_type_parameters"] = \
                 ["alone", [infile_param, outfile_param], evaluation_param]
 
-            args["score_type"] = "Sum"
+            args["score_type"] = "GroupMin"
+            args["score_type_parameters"] = json.loads('[[100, ".*", "Test Cases"]]')
+
             total_value = 100.0
             input_value = 0.0
 
             testcases = int(testset.find('test-count').text)
-
-            n_input = testcases
-            if n_input != 0:
-                input_value = total_value / n_input
-            args["score_type_parameters"] = input_value
 
             args["testcases"] = {}
 

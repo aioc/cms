@@ -22,6 +22,7 @@ from .base_loader import BaseLoader
 from .italy_yaml import YamlLoader
 from .polygon import PolygonTaskLoader, PolygonUserLoader, PolygonContestLoader
 from .tps import TpsTaskLoader
+from .ctf import CtfTaskLoader
 
 
 LOADERS: dict[str, type[BaseLoader]] = dict(
